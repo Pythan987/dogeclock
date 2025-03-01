@@ -1,0 +1,4 @@
+tweepy==4.14.0
+schedule==1.2.0
+selenium==4.16.0
+webdriver-manager==4.0.1 

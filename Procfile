@@ -1,0 +1,1 @@
+worker: python dogeclock_secure.py 
