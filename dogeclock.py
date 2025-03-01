@@ -5,10 +5,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 # Twitter API v2 credentials
-TWITTER_API_KEY = "3aH6BB8OxLciXHQ6dXc4YdY1k"
-TWITTER_API_SECRET = "mNCmLexpJdcGDpHTT1WsdQhbwxYB9UfABRgUH0u6Px5ksxg7cV"
-TWITTER_ACCESS_TOKEN = "1888613261718990848-fWykgH5THYlrd1owZyZFW02D5lp2tN"
-TWITTER_ACCESS_TOKEN_SECRET = "kz2UGW8orN8iZmq647npFTlHIlk7wuf915qZh6wTTq94i"
+TWITTER_API_KEY = 
+TWITTER_API_SECRET = 
+TWITTER_ACCESS_TOKEN = 
+TWITTER_ACCESS_TOKEN_SECRET = 
 
 # Global tweet counter
 tweet_count = 0
