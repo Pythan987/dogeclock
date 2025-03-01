@@ -2,6 +2,8 @@ import os
 import tweepy
 import schedule
 import time
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
@@ -13,6 +15,20 @@ TWITTER_ACCESS_TOKEN_SECRET = os.environ.get("TWITTER_ACCESS_TOKEN_SECRET")
 
 # Global tweet counter
 tweet_count = 0
+
+def run_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'DOGE Clock Bot is running!')
+    
+    server = HTTPServer(('0.0.0.0', port), Handler)
+    print(f"Started web server on port {port}")
+    server.serve_forever()
 
 def setup_twitter_v2():
     client = tweepy.Client(
@@ -124,9 +140,12 @@ def run_scheduled():
         time.sleep(60)
 
 if __name__ == "__main__":
+    # Start web server in a separate thread
+    threading.Thread(target=run_web_server, daemon=True).start()
+    
     # Check if we're running in GitHub Actions
     if os.environ.get("GITHUB_ACTIONS") == "true":
         run_once()
     else:
         # Running in a continuous environment like Railway or Render
-        run_scheduled() 
+        run_scheduled()
