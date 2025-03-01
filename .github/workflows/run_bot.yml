@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -20,24 +21,44 @@ jobs:
     
     - name: Install Chrome
       run: |
+        echo "Installing Chrome..."
         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
         echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
         sudo apt-get update
         sudo apt-get install -y google-chrome-stable
+        echo "Chrome version:"
+        google-chrome --version
     
     - name: Install ChromeDriver
       run: |
+        echo "Installing ChromeDriver..."
         CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d. -f1)
+        echo "Chrome major version: $CHROME_VERSION"
         CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+        echo "ChromeDriver version: $CHROMEDRIVER_VERSION"
         wget -q "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
         unzip chromedriver_linux64.zip
         sudo mv chromedriver /usr/local/bin/
         sudo chmod +x /usr/local/bin/chromedriver
+        echo "ChromeDriver path:"
+        which chromedriver
+        echo "ChromeDriver version:"
+        chromedriver --version
     
     - name: Install dependencies
       run: |
+        echo "Installing Python dependencies..."
         python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        # In case requirements.txt is missing or incomplete
         pip install tweepy schedule selenium webdriver-manager
+        pip list
+    
+    - name: Check file contents
+      run: |
+        echo "Checking dogeclock.py content..."
+        grep -n "TWITTER_API_KEY" dogeclock.py || echo "Pattern not found"
+        grep -n "os.environ" dogeclock.py || echo "Pattern not found"
     
     - name: Run bot once
       env:
@@ -45,23 +66,8 @@ jobs:
         TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
         TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
         TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+        PYTHONUNBUFFERED: "1"  # Ensure Python output is not buffered
       run: |
-        # Modify the script to use environment variables and run once
-        sed -i 's/TWITTER_API_KEY = ".*"/TWITTER_API_KEY = os.environ["TWITTER_API_KEY"]/' dogeclock.py
-        sed -i 's/TWITTER_API_SECRET = ".*"/TWITTER_API_SECRET = os.environ["TWITTER_API_SECRET"]/' dogeclock.py
-        sed -i 's/TWITTER_ACCESS_TOKEN = ".*"/TWITTER_ACCESS_TOKEN = os.environ["TWITTER_ACCESS_TOKEN"]/' dogeclock.py
-        sed -i 's/TWITTER_ACCESS_TOKEN_SECRET = ".*"/TWITTER_ACCESS_TOKEN_SECRET = os.environ["TWITTER_ACCESS_TOKEN_SECRET"]/' dogeclock.py
-        
-        # Add os import at the top
-        sed -i '1s/^/import os\n/' dogeclock.py
-        
-        # Modify main function to run only once
-        sed -i 's/def main():.*/def main():\n    # Run the tweet once\n    post_update_v2()/' dogeclock.py
-        
-        # Remove the scheduler and loop
-        sed -i '/schedule.every/d' dogeclock.py
-        sed -i '/while True:/d' dogeclock.py
-        sed -i '/schedule.run_pending()/d' dogeclock.py
-        sed -i '/time.sleep(60)/d' dogeclock.py
-        
-        python dogeclock.py 
+        echo "Running the DOGE Clock Bot..."
+        # Run the script directly - no modifications needed as it already uses environment variables
+        python dogeclock.py
